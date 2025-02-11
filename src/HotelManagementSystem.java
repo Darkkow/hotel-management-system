@@ -192,7 +192,8 @@ public class HotelManagementSystem {
             System.out.println("1. Add Room");
             System.out.println("2. Delete Room");
             System.out.println("3. View All Rooms");
-            System.out.println("4. Back to Main Menu");
+            System.out.println("4. Search Room by ID");
+            System.out.println("5. Back to Main Menu");
             System.out.print("Enter your choice: ");
 
             String input = scanner.nextLine().trim();
@@ -215,6 +216,9 @@ public class HotelManagementSystem {
                     viewAllRooms();
                     break;
                 case 4:
+                    searchRoomById(); // Новый метод для поиска
+                    break;
+                case 5:
                     return;
                 default:
                     System.out.println("Invalid choice. Try again.");
@@ -311,7 +315,8 @@ public class HotelManagementSystem {
             System.out.println("\n=== Customer Menu (Hotel) ===");
             System.out.println("1. View All Rooms");
             System.out.println("2. Purchase Room");
-            System.out.println("3. Back to Main Menu");
+            System.out.println("3. Search Room by ID");  // Новый пункт для поиска
+            System.out.println("4. Back to Main Menu");
             System.out.print("Enter your choice: ");
 
             String input = scanner.nextLine().trim();
@@ -331,10 +336,44 @@ public class HotelManagementSystem {
                     purchaseRoom(customer);
                     break;
                 case 3:
+                    searchRoomById(); // Новый метод для поиска
+                    break;
+                case 4:
                     return;
                 default:
                     System.out.println("Invalid choice. Try again.");
             }
+        }
+    }
+
+    private static void searchRoomById() {
+        System.out.print("Enter room number to search: ");
+        int roomNumber;
+        try {
+            roomNumber = Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid room number.");
+            return;
+        }
+
+        String query = "SELECT * FROM rooms WHERE room_number = ?";
+        try (Connection connection = databaseHandler.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, roomNumber);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                String category = resultSet.getString("category");
+                double price = resultSet.getDouble("price");
+                boolean isAvailable = resultSet.getBoolean("is_available");
+                System.out.printf("Room Number: %d, Category: %s, Price: %.2f, Available: %b%n",
+                        roomNumber, category, price, isAvailable);
+            } else {
+                System.out.println("Room not found.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching room details: " + e.getMessage());
         }
     }
 
